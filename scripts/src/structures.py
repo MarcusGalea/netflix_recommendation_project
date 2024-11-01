@@ -35,6 +35,7 @@ class User:
             get_ratings()
                 Return a list of ratings given by the user
         """
+        
         self.id = id #user id
         self.ratings = defaultdict(float) #movie_id: rating given by user
         self.dates = defaultdict(dt.datetime) #movie_id: date rating was given
@@ -70,12 +71,18 @@ class User:
         if len(watched_movies) == 0:
             return 0
         elif method == 'pearson':
-            if self.normalized: #if ratings have been normalized
-                ratings1 = np.array([self.ratings[movie_id] for movie_id in watched_movies])
-                ratings2 = np.array([other.ratings[movie_id] for movie_id in watched_movies])
-                denom = np.linalg.norm(ratings1)*np.linalg.norm(ratings2)
-                denom = denom if denom != 0 else 1.0
-                return np.dot(ratings1, ratings2)/denom
+            assert self.normalized and other.normalized, "Ratings should be normalized"
+            ratings1 = np.array([self.ratings[movie_id] for movie_id in watched_movies])
+            ratings2 = np.array([other.ratings[movie_id] for movie_id in watched_movies])
+            denom = np.linalg.norm(ratings1)*np.linalg.norm(ratings2)
+            denom = denom if denom != 0 else 1.0
+            return np.dot(ratings1, ratings2)/denom
+        elif method == 'jacard':
+            #TODO implement jacard similarity
+            pass
+        elif method == 'cosine':
+            #TODO implement cosine similarity
+            pass
         else:
             #return error
             raise ValueError(f"Method {method} not implemented")
@@ -106,22 +113,22 @@ class User:
 
     def get_ratings(self):
         """
-        Return a list of ratings given by the user
+        Return a dict of movie_id: rating given by the user
         """
-        return list(self.ratings.values())
+        return self.ratings
 
     def average_rating(self):
         """
         return the average rating given by the user
         """
-        return sum(self.get_ratings())/len(self.ratings)
+        return sum(self.ratings.values())/len(self.ratings)
 
     def sd_rating(self):
         """
         return the standard deviation of the user's ratings
         """
         avg_rating = self.average_rating()
-        sd = (sum([(rating - avg_rating)**2 for rating in self.get_ratings()])/len(self.ratings))**0.5
+        sd = np.sqrt(sum([(rating - avg_rating)**2 for rating in self.ratings.values()])/len(self.ratings))
         return sd if sd != 0 else 1
     
     def __str__(self):
@@ -205,6 +212,12 @@ class Movie:
             denom = np.linalg.norm(ratings1)*np.linalg.norm(ratings2)
             denom = denom if denom != 0 else 1.0
             return np.dot(ratings1, ratings2)/denom
+        elif method == 'jacard':
+            #TODO implement jacard similarity
+            pass
+        elif method == 'cosine':
+            #TODO implement cosine similarity
+            pass
         else:
             #return error
             raise ValueError(f"Method {method} not implemented. You should normalize the ratings first")
