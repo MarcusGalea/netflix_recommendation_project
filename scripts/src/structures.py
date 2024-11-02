@@ -220,6 +220,7 @@ class Movie:
         self.title = title #movie title 
         self.year = year #movie release year
         self.users = defaultdict(User) #list of users who have watched the movie
+        self.genres = [] #list of genres
         self.n_watched = 0
         
 
