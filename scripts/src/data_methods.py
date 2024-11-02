@@ -55,7 +55,7 @@ def read_viewers(datapath, movies, datafiles = ['combined_data_1.txt'], with_tqd
                     users[userid].add_rating(movies[movieid], int(rating), date)
     return users
 
-
+#### Dataframe methods ####
 def dict_to_df(users):
     data = []
     for user in users.values():

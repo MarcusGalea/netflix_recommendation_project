@@ -1,6 +1,8 @@
 import datetime as dt
 from collections import defaultdict
+from itertools import repeat
 import numpy as np
+from operator import itemgetter
 
 class User:
     def __init__(self, id):
@@ -34,15 +36,23 @@ class User:
                 the average rating and dividing by the standard deviation
             get_ratings()
                 Return a list of ratings given by the user
+            bag_ratings(method = "jaccard bag")
+                Return a bag representation of the user's ratings
         """
         
+        
+        ### User attributes ###
         self.id = id #user id
         self.ratings = defaultdict(float) #movie_id: rating given by user
         self.dates = defaultdict(dt.datetime) #movie_id: date rating was given
         self.movies = defaultdict(Movie) #movie_id: movie object
+        
+        #### Utility attributes ####
         self.n_watched = 0 #number of movies watched by user
         self.normalized = False #flag to indicate if ratings have been normalized
-    
+        
+        ### Bag representation of user's ratings ###
+        self.bag = [] #bag representation of user's ratings
     
     
     def __hash__(self):
@@ -51,6 +61,20 @@ class User:
         """
         #TODO: implement hash function
         pass
+    
+    def bag_ratings(self):
+        """
+        Return a bag representation of the user's ratings.
+        """
+        if len(self.bag) > 0:
+            return self.bag
+        assert not self.normalized, "Ratings should not be normalized before creating a bag representation"
+        
+        # bag contains the movies n times if the user rated the movie n stars.
+        for movie_id, rating in self.ratings.items():
+            self.bag.extend(repeat(movie_id, int(rating)))
+        return self.bag
+        
     
     def similarity(self, other, method='pearson'):
         """
@@ -67,19 +91,24 @@ class User:
                 similarity between the two users
         """
         #get intersection of movies watched by both users
-        watched_movies = set(self.movies.keys()).intersection(other.movies.keys())
-        if len(watched_movies) == 0:
+        intersection = set(self.movies.keys()).intersection(other.movies.keys())
+        if len(intersection) == 0:
             return 0
         elif method == 'pearson':
-            assert self.normalized and other.normalized, "Ratings should be normalized"
-            ratings1 = np.array([self.ratings[movie_id] for movie_id in watched_movies])
-            ratings2 = np.array([other.ratings[movie_id] for movie_id in watched_movies])
+            #normalized ratings
+            ratings1 = np.array([self.normalize_rating(movie_id) for movie_id in intersection])
+            ratings2 = np.array([other.normalize_rating(movie_id) for movie_id in intersection]) 
+
             denom = np.linalg.norm(ratings1)*np.linalg.norm(ratings2)
             denom = denom if denom != 0 else 1.0
             return np.dot(ratings1, ratings2)/denom
-        elif method == 'jacard':
-            #TODO implement jacard similarity
-            pass
+        
+        elif method == 'jaccard':
+            #jaccard similarity assuming jaccard bag representation for ratings (MMDS ch. 3.1)
+            numerator = np.sum(np.minimum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of minimum ratings
+            denom = sum(self.ratings.values()) + sum(other.ratings.values()) #sum of ratings
+            return 2*numerator/denom #jaccard similarity. Multiply by 2 to get similarity in [0, 1]
+            
         elif method == 'cosine':
             #TODO implement cosine similarity
             pass
@@ -91,6 +120,15 @@ class User:
     def add_rating(self, movie, rating: int, date: str):
         """
         Add a rating to the user's ratings and add the user to the movie's watched_by list
+        Args:
+        -----
+            movie: Movie
+                movie object
+            rating: int
+                rating given by user
+            date: str
+                date rating was given
+        
         """
         self.ratings[movie.id] = rating #add rating to user's ratings
         self.dates[movie.id] = date #add date to user's 
@@ -103,13 +141,19 @@ class User:
         """
         Normalize the user's ratings by subtracting the average rating and dividing by the standard deviation
         """
-        avg_rating = self.average_rating()
-        sd_rating = self.sd_rating()
         for movie_id in self.ratings:
-            self.ratings[movie_id] -= avg_rating
-            self.ratings[movie_id] /= sd_rating
+            self.ratings[movie_id] = self.normalize_rating(movie_id)
         self.normalized = True
-    
+            
+    def normalize_rating(self, movie_id: str):
+        """
+        Normalize the rating for a specific movie
+        """
+        avg_rating = self.average_rating()
+        sd_rating = self.sd_rating() if self.sd_rating() != 0 else 1.0
+        rating = self.ratings[movie_id] - avg_rating
+        rating /= sd_rating
+        return rating
 
     def get_ratings(self):
         """
@@ -121,15 +165,20 @@ class User:
         """
         return the average rating given by the user
         """
-        return sum(self.ratings.values())/len(self.ratings)
+        #define avg attribute if it does not exist
+        if not hasattr(self, 'avg'):
+            self.avg = sum(self.ratings.values())/len(self.ratings)
+        return self.avg
+    
 
     def sd_rating(self):
         """
         return the standard deviation of the user's ratings
         """
         avg_rating = self.average_rating()
-        sd = np.sqrt(sum([(rating - avg_rating)**2 for rating in self.ratings.values()])/len(self.ratings))
-        return sd if sd != 0 else 1
+        if not hasattr(self, 'sd'):
+            self.sd = np.sqrt(sum([(rating - avg_rating)**2 for rating in self.ratings.values()])/len(self.ratings))
+        return self.sd
     
     def __str__(self):
         return f"User({self.id})"
@@ -184,6 +233,10 @@ class Movie:
     def add_user(self, user: User):
         """
         add a user who has watched the movie
+        Args:
+        -----
+            user: User
+                user object
         """
         self.users[user.id] = user
         self.n_watched += 1
@@ -203,18 +256,21 @@ class Movie:
                 similarity between the two movies
         """
         #get intersection of users who have watched both movies
-        watched_users = set(self.users.keys()).intersection(other.users.keys())
-        if len(watched_users) == 0:
+        intersection = set(self.users.keys()).intersection(other.users.keys())
+        if len(intersection) == 0:
             return 0
         elif method == 'pearson':
-            ratings1 = np.array([self.users[user_id].ratings[self.id] for user_id in watched_users])
-            ratings2 = np.array([other.users[user_id].ratings[other.id] for user_id in watched_users])
+            ratings1 = np.array([self.users[user_id].ratings[self.id] for user_id in intersection])
+            ratings2 = np.array([other.users[user_id].ratings[other.id] for user_id in intersection])
             denom = np.linalg.norm(ratings1)*np.linalg.norm(ratings2)
             denom = denom if denom != 0 else 1.0
             return np.dot(ratings1, ratings2)/denom
-        elif method == 'jacard':
-            #TODO implement jacard similarity
-            pass
+        
+        elif method == 'jaccard':
+            #union of users who have watched the two movies
+            union = set(self.users.keys()).union(other.users.keys())
+            return len(intersection)/len(union)
+            
         elif method == 'cosine':
             #TODO implement cosine similarity
             pass
