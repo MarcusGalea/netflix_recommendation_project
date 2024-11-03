@@ -29,7 +29,8 @@ def read_viewers(
             datafiles = ['combined_data_1.txt'], 
             with_tqdm = False, 
             n_lines = np.inf,
-            reviews_pr_movie = np.inf
+            reviews_pr_movie = np.inf,
+            reviews_pr_user = np.inf
             ):
     """
     Read data from the netflix dataset
@@ -61,8 +62,9 @@ def read_viewers(
                         if userid not in users:
                             users[userid] = User(userid)
                         #add rating to user
-                        users[userid].add_rating(movies[movieid], int(rating), date)
-                        j += 1
+                        if users[userid].n_watched < reviews_pr_user:
+                            users[userid].add_rating(movies[movieid], int(rating), date)
+                    j += 1
     #remove movies with no ratings
     excluded_movies = [movieid for movieid, movie in movies.items() if movie.n_watched == 0]
     for movieid in excluded_movies:
