@@ -46,6 +46,7 @@ class User:
         self.ratings = defaultdict(float) #movie_id: rating given by user
         self.dates = defaultdict(dt.datetime) #movie_id: date rating was given
         self.movies = defaultdict(Movie) #movie_id: movie object
+        self.neighbors = defaultdict(float) #user_id: similarity to user
         
         #### Utility attributes ####
         self.n_watched = 0 #number of movies watched by user
