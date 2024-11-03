@@ -23,7 +23,14 @@ def read_movies(datapath):
                 movies[movieid] = Movie(movieid, title, year)
         return movies
 
-def read_viewers(datapath, movies, datafiles = ['combined_data_1.txt'], with_tqdm = False, n_lines = np.inf):
+def read_viewers(
+            datapath, 
+            movies, 
+            datafiles = ['combined_data_1.txt'], 
+            with_tqdm = False, 
+            n_lines = np.inf,
+            reviews_pr_movie = np.inf
+            ):
     """
     Read data from the netflix dataset
     Args:
@@ -47,13 +54,19 @@ def read_viewers(datapath, movies, datafiles = ['combined_data_1.txt'], with_tqd
                 if not ',' in line:
                     movieid = line.split(':')[0]
                 else:
-                    userid, rating, date= line.split(',')
-                    #check if user already exists
-                    if userid not in users:
-                        users[userid] = User(userid)
-                    #add rating to user
-                    users[userid].add_rating(movies[movieid], int(rating), date)
-
+                    j = 0
+                    if j < reviews_pr_movie:
+                        userid, rating, date= line.split(',')
+                        #check if user already exists
+                        if userid not in users:
+                            users[userid] = User(userid)
+                        #add rating to user
+                        users[userid].add_rating(movies[movieid], int(rating), date)
+                        j += 1
+    #remove movies with no ratings
+    excluded_movies = [movieid for movieid, movie in movies.items() if movie.n_watched == 0]
+    for movieid in excluded_movies:
+        del movies[movieid]
     return users
 
 #### Dataframe methods ####
