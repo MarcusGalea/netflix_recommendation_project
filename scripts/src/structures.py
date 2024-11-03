@@ -222,7 +222,7 @@ class Movie:
         self.users = defaultdict(User) #list of users who have watched the movie
         self.genres = [] #list of genres
         self.n_watched = 0
-        
+        self.bag = [] #bag representation of movie's ratings
 
     def __hash__(self):
         """
@@ -284,6 +284,19 @@ class Movie:
         Return a dictionary of user_id: rating for the movie
         """
         return {user_id: user.ratings[self.id] for user_id, user in self.users.items()}
+    
+    def bag_ratings(self):
+        """
+        Return a bag representation of the movie's ratings
+        """
+        if len(self.bag) > 0:
+            return self.bag
+        
+        for user_id, user in self.users.items():
+            #add user's rating n times if user rated the movie n stars
+            self.bag.extend(repeat(user_id, int(user.ratings[self.id])))
+            
+        return self.bag
     
     def __str__(self):
         return f"{self.title}, {self.year}"
