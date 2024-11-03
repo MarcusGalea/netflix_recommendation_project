@@ -223,6 +223,7 @@ class Movie:
         self.genres = [] #list of genres
         self.n_watched = 0
         self.bag = [] #bag representation of movie's ratings
+        self.node_rgb = None #node color for visualization
 
     def __hash__(self):
         """
@@ -297,6 +298,45 @@ class Movie:
             self.bag.extend(repeat(user_id, int(user.ratings[self.id])))
             
         return self.bag
+
+    def calculate_node_rgb(self):
+        """
+        Calculate the node color based on the genres of the movie
+        """
+        genre_colors = {
+        'Drama': (0, 0, 255),
+        'Comedy': (0, 255, 0),
+        'Romance': (255, 0, 0),
+        'Action': (255, 255, 0),
+        'Crime': (255, 0, 255),
+        'Adventure': (0, 255, 255),
+        'Thriller': (0, 0, 196),
+        'Horror': (0, 196, 0),
+        'Mystery': (196, 0, 0),
+        'Fantasy': (196, 196, 0),
+        'Sci-Fi': (196, 0, 196),
+        'Family': (0, 0, 128),
+        'Biography': (0, 128, 0),
+        'War': (128, 0, 0),
+        'History': (128, 128, 0),
+        'Animation': (128, 0, 128),
+        'Musical': (0, 128, 128),
+        'Music': (96, 0, 0),
+        'Sport': (0, 96, 0),
+        'Film-Noir': (0, 0, 96),
+        'Western': (96, 96, 0),
+        'Adult': (96, 0, 96),
+        }
+        
+        # add the rgb values together and divide by the number of genres
+        rgb = [0, 0, 0]
+        if len(self.genres) == 0:
+            self.node_rgb = (0, 0, 0)
+            return
+        for genre in self.genres:
+            rgb = [sum(x) for x in zip(rgb, genre_colors[genre])]
+        rgb = [x/len(self.genres) for x in rgb]
+        self.node_rgb = rgb
     
     def __str__(self):
         return f"{self.title}, {self.year}"
