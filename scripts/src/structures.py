@@ -225,6 +225,7 @@ class Movie:
         self.n_watched = 0
         self.bag = [] #bag representation of movie's ratings
         self.node_rgb = None #node color for visualization
+        self.neighbors = defaultdict(float) #movie_id: similarity to movie
 
     def __hash__(self):
         """

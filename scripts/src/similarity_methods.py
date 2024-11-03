@@ -1,7 +1,7 @@
 import numpy as np
 import mmh3
 from collections import defaultdict
-from structures import User, Movie
+from src.structures import User, Movie
 from tqdm import tqdm
 
 def compute_minhashes(
