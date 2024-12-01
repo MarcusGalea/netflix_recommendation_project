@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 def compute_minhashes(
                 object: Movie | User, #movie or user to compute minhashes for
-                n_hash = 100 #number of hashes
+                n_hash = 100, #number of hashes
                 ):
     """Computes minhashes for a movie or user object
 

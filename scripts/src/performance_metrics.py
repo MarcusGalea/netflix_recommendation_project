@@ -1,5 +1,50 @@
 from math import comb
 import numpy as np
+from collections import defaultdict
+from src.structures import User, Movie
+from tqdm import tqdm
+
+
+def prediction(user: User, movie: Movie):
+    #get the neighbors
+    weighted_sum = 0
+    total_weight = 0
+    for neighbor_id, similarity in user.neighbors.items():
+        neighbor = users[neighbor_id]
+        if movie.id in neighbor.ratings:
+            weighted_sum += similarity * (neighbor.ratings[movie.id]-neighbor.average_rating())
+            total_weight += similarity
+    if total_weight == 0:
+        return -1
+    return weighted_sum/ total_weight + user.average_rating()
+
+
+def prediction_error(user: User, movies, method = 'MAE'):
+    error = 0.0
+    n = 0
+    for movie_id,rating in user.ratings.items():
+        movie = movies[movie_id]
+        pred = prediction(user, movie)
+        if pred == -1:
+            continue
+        if method == 'MAE':
+            error += abs(rating - pred)
+        elif method == 'RMSE':
+            error += (rating - pred)**2
+        n += 1
+    if n == 0:
+        return -1
+    if method == 'MAE':
+        return error/n
+    elif method == 'RMSE':
+        return np.sqrt(error/n)
+
+def prediction_error_all(users: dict[str, User], method = 'MAE'):
+    RMSE_dict = defaultdict(float)
+    for user in tqdm(users.values()):
+        RMSE_dict[user.id] = prediction_error(user, method = method)
+    return RMSE_dict
+
 
 def get_true_pairs(movies: dict, #dict of Movie objects indexed by movie_id
                    sim_matrix, #similarity matrix between movies

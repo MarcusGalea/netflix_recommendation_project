@@ -63,7 +63,7 @@ class User:
         #TODO: implement hash function
         pass
     
-    def bag_ratings(self):
+    def bag_ratings(self, bagging = "jaccard"):
         """
         Return a bag representation of the user's ratings.
         """
@@ -104,11 +104,16 @@ class User:
             denom = denom if denom != 0 else 1.0
             return np.dot(ratings1, ratings2)/denom
         
-        elif method == 'jaccard':
+        elif method == 'bag_similarity':
             #jaccard similarity assuming jaccard bag representation for ratings (MMDS ch. 3.1)
             numerator = np.sum(np.minimum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of minimum ratings
             denom = sum(self.ratings.values()) + sum(other.ratings.values()) #sum of ratings
             return 2*numerator/denom #jaccard similarity. Multiply by 2 to get similarity in [0, 1]
+        
+        elif method == 'jaccard':
+            numerator = np.sum(np.minimum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of minimum ratings
+            denom = sum(np.maximum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of maximum ratings
+            return numerator/denom
             
         elif method == 'cosine':
             #TODO implement cosine similarity
