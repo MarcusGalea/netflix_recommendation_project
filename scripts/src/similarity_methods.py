@@ -18,7 +18,7 @@ def compute_minhashes(
     """
     
     
-    bag = object.bag_ratings() #bag of ratings
+    bag = object.bag_ratings() #bag representation of ratings
     hashes = np.array([[mmh3.hash(id, seed) for id in bag] for seed in range(n_hash)]) #hashes for each seed
     minhashes = np.min(hashes, axis = 1) #minhashes for each seed
     return minhashes
