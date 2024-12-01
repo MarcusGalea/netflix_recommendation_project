@@ -49,7 +49,7 @@ def bucket_hash(signatures: dict[str, np.ndarray], n_buckets = 100):
         n_buckets (int, optional): _description_. Defaults to 100.
 
     Returns:
-        int: bucket
+        int: bucket id
     """
     bucket = 0
     for signature in signatures:
@@ -69,9 +69,10 @@ def create_buckets(signatures: dict[str, np.ndarray], n_buckets = 100, bands = 1
     """
     r = len(signatures[list(signatures.keys())[0]]) // bands #number of rows in each band
     buckets = [defaultdict(list) for _ in range(bands)]
-    for id, signature in signatures.items(): #for each object
+    for id, signature in signatures.items(): #for each object (movie or user)
         for band in range(bands): #for each band
-            buckets[band][bucket_hash(signature[band*r:(band+1)*r], n_buckets)].append(id) #add to bucket
+            bucket_id = bucket_hash(signature[band*r:(band+1)*r], n_buckets) #hash the band to a bucket
+            buckets[band][bucket_id].append(id) #add id to bucket
     return buckets
 
 cartesian_product_exclude_greater = lambda A,B : set((a,b) for a in A for b in B if (b > a))
