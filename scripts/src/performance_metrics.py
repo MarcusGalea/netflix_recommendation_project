@@ -5,7 +5,17 @@ from src.structures import User, Movie
 from tqdm import tqdm
 
 
-def prediction(user: User, movie: Movie):
+def prediction(user: User, users: dict[str, User], movie: Movie):
+    """predict the rating of a movie for a user based on the ratings of the neighbors
+
+    Args:
+        user (User): user for which we want to predict the rating
+        users (dict): dictionary of User objects indexed by user_id
+        movie (Movie): movie for which we want to predict the rating
+
+    Returns:
+        float: predicted rating of the movie for the user
+    """
     #get the neighbors
     weighted_sum = 0
     total_weight = 0
@@ -19,12 +29,22 @@ def prediction(user: User, movie: Movie):
     return weighted_sum/ total_weight + user.average_rating()
 
 
-def prediction_error(user: User, movies, method = 'MAE'):
+def prediction_error(user: User, users: dict[str, User], movies: dict[str, Movie], method = 'MAE'):
+    """compute the prediction error for a user
+    
+    Args:
+        user: User object
+        users: dict of User objects indexed by user_id
+        movies: dict of Movie objects indexed by movie_id
+        
+    Returns:
+        float: prediction error (MAE or RMSE)
+    """
     error = 0.0
     n = 0
     for movie_id,rating in user.ratings.items():
         movie = movies[movie_id]
-        pred = prediction(user, movie)
+        pred = prediction(user, users, movie)
         if pred == -1:
             continue
         if method == 'MAE':
@@ -39,10 +59,20 @@ def prediction_error(user: User, movies, method = 'MAE'):
     elif method == 'RMSE':
         return np.sqrt(error/n)
 
-def prediction_error_all(users: dict[str, User], method = 'MAE'):
+def prediction_error_all(users: dict[str, User], movies: dict[str, Movie], method = 'MAE'):
+    """compute the prediction error for all users
+    
+    Args:
+        users: dict of User objects indexed by user_id
+        movies: dict of Movie objects indexed by movie_id
+        method: str, 'MAE' or 'RMSE'
+    
+    Returns:
+        dict: dict of prediction errors indexed by user_id
+    """
     RMSE_dict = defaultdict(float)
     for user in tqdm(users.values()):
-        RMSE_dict[user.id] = prediction_error(user, method = method)
+        RMSE_dict[user.id] = prediction_error(user, users, movies, method = method)
     return RMSE_dict
 
 
