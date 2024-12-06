@@ -1,3 +1,4 @@
 # Netflix Recommendation System
-<!-- Include html file -->
-<iframe src="loading_and_preprocessing.html"></iframe>
+This repository consists of all the code associated with our Netflix Recommendation System project for the course 02807 Computational Tools for Data Science at Technical University of Denmark. All relevant notebooks are wound within `scripts/` and the data can be downloaded automatically from each notebook. The data is fetched from the [Netflix Prize Data](https://www.kaggle.com/netflix-inc/netflix-prize-data) dataset on Kaggle. The ratings and genre distribution of the movies are illustrated in the following figures.
+
+![Ratings](https://github.com/MarcusGalea/netflix_recommendation_project/blob/main/plots/ratings-genres.png)
