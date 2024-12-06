@@ -55,13 +55,7 @@ class User:
         ### Bag representation of user's ratings ###
         self.bag = [] #bag representation of user's ratings
     
-    
-    def __hash__(self):
-        """
-        Return a hash value for the user object
-        """
-        #TODO: implement hash function
-        pass
+
     
     def bag_ratings(self, bagging = "jaccard"):
         """
@@ -111,9 +105,8 @@ class User:
             return 2*numerator/denom #jaccard similarity. Multiply by 2 to get similarity in [0, 1]
         
         elif method == 'jaccard':
-            numerator = np.sum(np.minimum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of minimum ratings
-            denom = sum(np.maximum(itemgetter(*intersection)(self.ratings), itemgetter(*intersection)(other.ratings))) #sum of maximum ratings
-            return numerator/denom
+            union = set(self.movies.keys()).union(other.movies.keys())
+            return len(intersection)/len(union)
             
         elif method == 'cosine':
             #TODO implement cosine similarity
@@ -232,12 +225,6 @@ class Movie:
         self.node_rgb = None #node color for visualization
         self.neighbors = defaultdict(float) #movie_id: similarity to movie
 
-    def __hash__(self):
-        """
-        Return a hash value for the movie object
-        """
-        #TODO: implement hash function
-        pass
     
     def add_user(self, user: User):
         """

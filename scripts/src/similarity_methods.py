@@ -46,7 +46,7 @@ def bucket_hash(signatures: dict[str, np.ndarray], n_buckets = 100):
 
     Args:
         signatures (list): list of signatures
-        n_buckets (int, optional): _description_. Defaults to 100.
+        n_buckets (int, optional): Defaults to 100.
 
     Returns:
         int: bucket id
